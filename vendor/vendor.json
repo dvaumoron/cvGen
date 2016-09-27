@@ -1,6 +1,19 @@
 {
 	"comment": "",
 	"ignore": "test",
-	"package": [],
+	"package": [
+		{
+			"checksumSHA1": "ycIT9hQX0huiWpNNIK4YtKvlkBM=",
+			"path": "github.com/beego/goyaml2",
+			"revision": "5545475820ddd4db3f90a4900d44b65d077d702d",
+			"revisionTime": "2013-02-07T01:23:46Z"
+		},
+		{
+			"checksumSHA1": "H6nIE8MPPxWw3YP/3/JuxkW4n84=",
+			"path": "github.com/wendal/errors",
+			"revision": "f66c77a7882b399795a8987ebf87ef64a427417e",
+			"revisionTime": "2013-02-01T09:32:26Z"
+		}
+	],
 	"rootPath": "github.com/dvaumoron/cvGen"
 }
