@@ -12,17 +12,13 @@ import (
 	"text/template"
 )
 
-type Error struct {
-	message string
+type InsufficientPathError struct {
+	type string
 }
 
-func (err Error) Error() string {
-	return err.message	
+func (err InsufficientPathError) Error() string {
+	return "path insufficient or too long for finding a cv." + err.type + " file."	
 }
-
-const (
-	InsufficientPathError = Error{"chemin insuffisant ou trop long pour trouver un cv.html"}
-)
 
 func readFromUrl(addr string) (string, error) {
 	tlsConfig := &tls.Config{
@@ -62,7 +58,7 @@ func readFromGithub(filePath string) (string, error) {
 		} else if l == 1 {
 			fileSubPath = splitted[0] + "/cv"
 		} else {
-			return "", InsufficientPathError
+			return "", InsufficientPathError{"html"}
 		}
 	}
 	addr := "https://raw.githubusercontent/" + fileSubPath + "/master/" + fileName
@@ -74,12 +70,12 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 	splitted := strings.Split(path, "/")
 	var cvPath string
-	if l := len(splitted); l > 2 {
+	if l := len(splitted); l > 1 {
 		cvPath = splitted[0] + "/" + splitted[1] + "/cv.yaml"
 	} else if l == 1 {
 		cvPath = splitted[0] + "/cv/cv.yaml"
 	} else {
-		http.Error(w, InsufficientPathError.Error(), http.StatusNotFound)
+		http.Error(w, InsufficientPathError{"yaml"}.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -110,11 +106,22 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl.Execute(w, obj)
+	err = tmpl.Execute(w, obj)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func staticHandler(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path[8:]
+	body, err := readFromGithub(path)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
 
+	w.Write([]byte(body))
 }
 
 func main() {
