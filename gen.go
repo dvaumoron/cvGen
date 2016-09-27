@@ -12,8 +12,16 @@ import (
 	"text/template"
 )
 
+type Error struct {
+	message string
+}
+
+func (err Error) Error() string {
+	return err.message	
+}
+
 const (
-	InsufficientPathError = "chemin insuffisant ou trop long pour trouver un cv.yaml"
+	InsufficientPathError = Error{"chemin insuffisant ou trop long pour trouver un cv.html"}
 )
 
 func readFromUrl(addr string) (string, error) {
@@ -71,13 +79,13 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	} else if l == 1 {
 		cvPath = splitted[0] + "/cv/cv.yaml"
 	} else {
-		http.Error(w, InsufficientPathError, http.StatusInternalServerError)
+		http.Error(w, InsufficientPathError.Error(), http.StatusNotFound)
 		return
 	}
 
 	body, err := readFromGithub(cvPath)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -85,7 +93,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		tmplBody, err2 := readFromGithub("dvaumoron")
 		if err2 != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
 	}
@@ -105,15 +113,13 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, obj)
 }
 
-func makeHandler(prefixe string) http.HandlerFunc {
+func staticHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
 func main() {
 	http.HandleFunc("/", mainHandler)
-	http.HandleFunc("/css/", makeHandler("css"))
-	http.HandleFunc("/img/", makeHandler("img"))
-	http.HandleFunc("/js/", makeHandler("js"))
+	http.HandleFunc("/static/", staticHandler)
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
