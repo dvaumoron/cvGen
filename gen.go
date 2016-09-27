@@ -20,7 +20,7 @@ func (err PathError) Error() string {
 	return err.message
 }
 
-const InsufficientPathError = PathError{"path insufficient or too long for finding the file."}
+var InsufficientPathError = PathError{"path insufficient or too long for finding the file."}
 
 func readFromUrl(addr string) (string, error) {
 	tlsConfig := &tls.Config{
@@ -47,11 +47,22 @@ func readFromUrl(addr string) (string, error) {
 }
 
 func readFromGithub(fileSubPath, fileName string) (string, error) {
-	return readFromUrl("https://raw.githubusercontent/" + fileSubPath + "/master/" + fileName)
+	return readFromUrl("https://raw.githubusercontent.com/" + fileSubPath + "/master/" + fileName)
+}
+
+func splitWithoutBlank(s string) []string {
+	splitted := strings.Split(s, "/")
+	res := make([]string, 0)
+	for _, value := range splitted {
+		if value != "" {
+			res = append(res, value)
+		}
+	}
+	return res
 }
 
 func splitPath(filePath string, strict bool) (string, string, error) {
-	splitted := strings.Split(filePath, "/")
+	splitted := splitWithoutBlank(filePath)
 	var fileName string
 	var fileSubPath string
 	if l := len(splitted); l == 3 {
@@ -87,14 +98,15 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 	tmplBody, err := readFromGithub(fileSubPath, fileName)
 	if err != nil {
-		tmplBody, err2 := readFromGithub("dvaumoron/cv", "cv.html")
+		var err2 error
+		tmplBody, err2 = readFromGithub("dvaumoron/cv", "cv.html")
 		if err2 != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
 	}
 
-	tmpl, err := template.New("tmpl").parse(tmplBody)
+	tmpl, err := template.New("tmpl").Parse(tmplBody)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
