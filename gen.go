@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/tls"
-	"fmt"
+	"log"
 	"github.com/beego/goyaml2"
 	"io/ioutil"
 	"net/http"
@@ -130,11 +130,16 @@ func staticHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+        	log.Fatal("$PORT must be set")
+    	}
+
 	http.HandleFunc("/", mainHandler)
 	http.HandleFunc("/static/", staticHandler)
 
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":" + port, nil)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 }
