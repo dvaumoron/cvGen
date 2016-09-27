@@ -12,15 +12,13 @@ import (
 	"text/template"
 )
 
-type PathError struct {
-	message string
-}
+type PathError string
 
 func (err PathError) Error() string {
-	return err.message
+	return string(err)
 }
 
-var InsufficientPathError = PathError{"path insufficient or too long for finding the file."}
+const InsufficientPathError = PathError("path insufficient or too long for finding the file.")
 
 func readFromUrl(addr string) (string, error) {
 	tlsConfig := &tls.Config{
