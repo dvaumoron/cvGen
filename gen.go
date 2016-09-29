@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/tls"
-	"github.com/beego/goyaml2"
+	"github.com/kylelemons/go-gypsy/yaml"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -111,7 +111,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	obj, err := goyaml2.Read(bytes.NewReader([]byte(body)))
+	obj, err := yaml.Parse(bytes.NewReader([]byte(body)))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

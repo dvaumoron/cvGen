@@ -3,16 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "ycIT9hQX0huiWpNNIK4YtKvlkBM=",
-			"path": "github.com/beego/goyaml2",
-			"revision": "5545475820ddd4db3f90a4900d44b65d077d702d",
-			"revisionTime": "2013-02-07T01:23:46Z"
-		},
-		{
-			"checksumSHA1": "H6nIE8MPPxWw3YP/3/JuxkW4n84=",
-			"path": "github.com/wendal/errors",
-			"revision": "f66c77a7882b399795a8987ebf87ef64a427417e",
-			"revisionTime": "2013-02-01T09:32:26Z"
+			"checksumSHA1": "p+Bj1OSkp9/zxr6oZGzBAvYsdm0=",
+			"path": "github.com/kylelemons/go-gypsy/yaml",
+			"revision": "08cad365cd28a7fba23bb1e57aa43c5e18ad8bb8",
+			"revisionTime": "2016-09-05T02:00:20Z"
 		}
 	],
 	"rootPath": "github.com/dvaumoron/cvGen"
