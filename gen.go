@@ -45,6 +45,10 @@ func readFromUrl(addr string) (string, error) {
 }
 
 func readFromGithub(fileSubPath, fileName string) (string, error) {
+	if local {
+		body, err := ioutil.ReadFile(localPath + fileName)
+		return string(body), err
+	}
 	return readFromUrl("https://raw.githubusercontent.com/" + fileSubPath + "/master/" + fileName)
 }
 
@@ -139,10 +143,18 @@ func staticHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(body))
 }
 
+var local = false
+var localPath = ""
+
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("$PORT must be set")
+	}
+
+	localPath = os.Getenv("LOCAL_PATH")
+	if localPath != "" {
+		local = true
 	}
 
 	http.HandleFunc("/", mainHandler)
