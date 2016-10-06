@@ -57,7 +57,7 @@ func readFromGithub(repoPath, folderPath, fileName string) (string, error) {
 
 func splitWithoutBlank(s string) []string {
 	splitted := strings.Split(s, "/")
-	res := make([]string, 0)
+	res := make([]string, 0, len(splitted))
 	for _, value := range splitted {
 		if value != "" {
 			res = append(res, value)
