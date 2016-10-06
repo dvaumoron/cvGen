@@ -70,7 +70,7 @@ func splitPath(path string, strict bool) (string, string, string, error) {
 	splitted := splitWithoutBlank(path)
 	var repoPath, fileName string
 	folderPath := ""
-	if l := len(splitted); l > 3 {
+	if l := len(splitted); l >= 3 {
 		repoPath = splitted[0] + "/" + splitted[1]
 		first := true
 		for i := 2; i < l-1; i++ {
