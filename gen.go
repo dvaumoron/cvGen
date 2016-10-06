@@ -18,7 +18,7 @@ func (err PathError) Error() string {
 	return string(err)
 }
 
-const InsufficientPathError = PathError("path insufficient or too long for finding the file.")
+const InsufficientPathError = PathError("path insufficient for finding the file.")
 
 func readFromUrl(addr string) (string, error) {
 	tlsConfig := &tls.Config{
@@ -41,12 +41,18 @@ func readFromUrl(addr string) (string, error) {
 	return string(body), err
 }
 
-func readFromGithub(fileSubPath, fileName string) (string, error) {
+func readFromGithub(repoPath, folderPath, fileName string) (string, error) {
+	var filePath string
+	if folderPath == "" {
+		filePath = fileName
+	} else {
+		filePath = folderPath + "/" + fileName
+	}
 	if local {
-		body, err := ioutil.ReadFile(localPath + fileName)
+		body, err := ioutil.ReadFile(localPath + filePath)
 		return string(body), err
 	}
-	return readFromUrl("https://raw.githubusercontent.com/" + fileSubPath + "/master/" + fileName)
+	return readFromUrl("https://raw.githubusercontent.com/" + repoPath + "/master/" + filePath)
 }
 
 func splitWithoutBlank(s string) []string {
@@ -60,45 +66,54 @@ func splitWithoutBlank(s string) []string {
 	return res
 }
 
-func splitPath(filePath string, strict bool) (string, string, error) {
-	splitted := splitWithoutBlank(filePath)
-	var fileName string
-	var fileSubPath string
-	if l := len(splitted); l == 3 {
-		fileName = splitted[2]
-		fileSubPath = splitted[0] + "/" + splitted[1]
+func splitPath(path string, strict bool) (string, string, string, error) {
+	splitted := splitWithoutBlank(path)
+	var repoPath, fileName string
+	folderPath := ""
+	if l := len(splitted); l > 3 {
+		repoPath = splitted[0] + "/" + splitted[1]
+		first := true
+		for i := 2; i < l-1; i++ {
+			if first {
+				first = false
+			} else {
+				folderPath += "/"
+			}
+			folderPath += splitted[i]
+		}
+		fileName = splitted[l-1]
 	} else if strict {
-		return "", "", InsufficientPathError
+		return "", "", "", InsufficientPathError
 	} else {
 		fileName = "cv.html"
 		if l == 2 {
-			fileSubPath = splitted[0] + "/" + splitted[1]
+			repoPath = splitted[0] + "/" + splitted[1]
 		} else if l == 1 {
-			fileSubPath = splitted[0] + "/cv"
+			repoPath = splitted[0] + "/cv"
 		} else {
-			return "", "", InsufficientPathError
+			return "", "", "", InsufficientPathError
 		}
 	}
-	return fileSubPath, fileName, nil
+	return repoPath, folderPath, fileName, nil
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
-	fileSubPath, fileName, err := splitPath(r.URL.Path, false)
+	repoPath, folderPath, fileName, err := splitPath(r.URL.Path, false)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	body, err := readFromGithub(fileSubPath, "cv.yaml")
+	body, err := readFromGithub(repoPath, folderPath, "cv.yaml")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	tmplBody, err := readFromGithub(fileSubPath, fileName)
+	tmplBody, err := readFromGithub(repoPath, folderPath, fileName)
 	if err != nil {
 		var err2 error
-		tmplBody, err2 = readFromGithub("dvaumoron/cv", "cv.html")
+		tmplBody, err2 = readFromGithub("dvaumoron/cv", "", "cv.html")
 		if err2 != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -125,13 +140,13 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func staticHandler(w http.ResponseWriter, r *http.Request) {
-	fileSubPath, fileName, err := splitPath(r.URL.Path[8:], true)
+	repoPath, folderPath, fileName, err := splitPath(r.URL.Path[8:], true)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	body, err := readFromGithub(fileSubPath, fileName)
+	body, err := readFromGithub(repoPath, folderPath, fileName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
